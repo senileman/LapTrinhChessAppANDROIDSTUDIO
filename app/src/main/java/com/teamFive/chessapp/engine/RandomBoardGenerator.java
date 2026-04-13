@@ -9,24 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-/**
- * Generates random boards in the "Really Bad Chess" style.
- *
- * Two generation modes:
- *   • generate()                  — uses DEFAULT_TARGET for both sides (balanced)
- *   • generate(whiteTarget, blackTarget) — aims for specific piece-value totals
- *
- * Simplified piece values used for targeting:
- *   QUEEN=9  ROOK=5  BISHOP=3  KNIGHT=3  PAWN=1
- *
- * A target is the desired sum of all 15 non-king pieces for one side.
- * Valid range: 15 (all pawns) – 135 (all queens).
- *
- * Note: not every integer in [15,135] is exactly reachable because all
- * piece values are odd, so the reachable set is a subset of odd integers.
- * The generator comes as close as possible and deviates by at most 2 pts
- * for the handful of unreachable targets (e.g. 133).
- */
+
 public class RandomBoardGenerator {
 
     // ----------------------------------------------------------------
@@ -45,10 +28,6 @@ public class RandomBoardGenerator {
         return generate(DEFAULT_TARGET, DEFAULT_TARGET);
     }
 
-    /**
-     * Board where White aims for whiteTarget pts and Black for blackTarget pts.
-     * Values are clamped to [15, 135].
-     */
     public static Piece[][] generate(int whiteTarget, int blackTarget) {
         Piece[][] board = new Piece[8][8];
 
@@ -81,16 +60,6 @@ public class RandomBoardGenerator {
     //  Piece list generation
     // ----------------------------------------------------------------
 
-    /**
-     * Generates exactly {@code count} PieceTypes whose simplified values sum
-     * as close as possible to {@code target}.
-     *
-     * Uses a greedy slot-filling algorithm:
-     *   At each position, pick a random piece whose value keeps the remaining
-     *   budget achievable for the remaining slots.  Handles edge cases where
-     *   the exact target is not reachable (all-odd values) by picking the
-     *   nearest available piece value.
-     */
     private static List<PieceType> generatePieceList(int target, int count) {
         // Clamp to achievable range
         target = Math.max(count, Math.min(count * 9, target));
@@ -150,18 +119,6 @@ public class RandomBoardGenerator {
     //  Piece placement
     // ----------------------------------------------------------------
 
-    /**
-     * Places {@code pieces} (exactly 15) for {@code color} onto the board,
-     * respecting the rule that pawns cannot stand on the back rank.
-     *
-     * Layout for each color:
-     *   back row  (king's row, 7 cells excluding king col 4) — no pawns
-     *   front row (the other row,  8 cells)                  — any piece
-     *
-     * If the generated list has fewer than 7 non-pawns (which can happen for
-     * very low targets), excess pawns are silently promoted to Knights so the
-     * back rank is always legally filled.
-     */
     private static void placeSpecificPieces(Piece[][] board,
                                              PlayerColor color,
                                              int topRow, int bottomRow,

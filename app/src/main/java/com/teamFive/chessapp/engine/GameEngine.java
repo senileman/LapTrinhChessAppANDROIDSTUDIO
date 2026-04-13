@@ -32,10 +32,7 @@ public class GameEngine {
         this(RandomBoardGenerator.DEFAULT_TARGET, RandomBoardGenerator.DEFAULT_TARGET);
     }
 
-    /**
-     * Board where White aims for {@code whiteTarget} simplified pts and
-     * Black for {@code blackTarget} simplified pts (range 15–135 each).
-     */
+
     public GameEngine(int whiteTarget, int blackTarget) {
         this.whiteTarget = whiteTarget;
         this.blackTarget = blackTarget;

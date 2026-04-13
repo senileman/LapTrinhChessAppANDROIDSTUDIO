@@ -70,7 +70,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Board Settings"
+                android:text="Cài đặt bàn cờ"
                 android:textColor="#FFD700"
                 android:textSize="15sp"
                 android:textStyle="bold"
@@ -89,7 +89,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Base Material Value"
+                    android:text="Điểm cơ bản"
                     android:textColor="#CCDDEE"
                     android:textSize="13sp" />
 
@@ -142,7 +142,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Sum of all 15 non-king pieces per side"
+                android:text="Tổng điểm của 15 quân (không tính Vua) mỗi bên"
                 android:textColor="#556677"
                 android:textSize="11sp"
                 android:gravity="center"
@@ -167,7 +167,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Material Advantage"
+                    android:text="Lợi thế"
                     android:textColor="#CCDDEE"
                     android:textSize="13sp" />
 
@@ -225,7 +225,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Black favored"
+                    android:text="Đen lợi thế"
                     android:textColor="#556677"
                     android:textSize="11sp"
                     android:gravity="start" />
@@ -234,7 +234,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="White favored"
+                    android:text="Trắng lợi thế"
                     android:textColor="#556677"
                     android:textSize="11sp"
                     android:gravity="end" />
@@ -253,7 +253,7 @@
                 android:id="@+id/tvBoardSummary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="⬜ White: 45 pts   ⚔   ⬛ Black: 45 pts"
+                android:text="⬜ Trắng: 45 pts   ⚔   ⬛ Đen: 45 pts"
                 android:textColor="#FFFFFF"
                 android:textSize="14sp"
                 android:textStyle="bold"

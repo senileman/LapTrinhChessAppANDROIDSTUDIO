@@ -11,15 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-/**
- * AI at depth-2 minimax with basic material evaluation.
- *
- * Intentionally weaker than HintEngine (depth-4 + PST + quiescence):
- *  - No piece-square tables (no positional understanding)
- *  - No quiescence search (susceptible to horizon effect)
- *  - Depth 2 only (looks one exchange ahead, misses tactics beyond that)
- *  - Small random tie-breaking (makes play less predictable)
- */
+
 public class AIPlayer {
 
     private static final int   INF = 1_000_000;
@@ -54,9 +46,6 @@ public class AIPlayer {
         return score;
     }
 
-    /**
-     * Returns the best move for aiColor using depth-2 minimax.
-     */
     public static Move getBestMove(BoardManager board, PlayerColor aiColor) {
         List<Move> moves = getAllValidSafeMoves(board, aiColor);
         if (moves.isEmpty()) return null;

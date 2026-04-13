@@ -10,16 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * HintEngine — Minimax with Alpha-Beta Pruning, depth 4 (≈2000 Elo).
- *
- * Features:
- *  - Piece-square tables (PST) for positional understanding
- *  - Material evaluation
- *  - Alpha-beta pruning
- *  - Move ordering (captures first, then PST-gainful moves) for better cutoffs
- *  - Quiescence search to avoid horizon effect on captures
- */
+
 public class HintEngine {
 
     // ----------------------------------------------------------------
