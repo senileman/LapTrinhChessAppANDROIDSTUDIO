@@ -19,9 +19,11 @@ import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.teamFive.chessapp.R;
+import com.teamFive.chessapp.engine.BoardManager;
 import com.teamFive.chessapp.engine.CheckDetector;
 import com.teamFive.chessapp.engine.GameEngine;
 import com.teamFive.chessapp.engine.HintEngine;
+import com.teamFive.chessapp.engine.RandomBoardGenerator;
 import com.teamFive.chessapp.model.Move;
 import com.teamFive.chessapp.model.Piece;
 import com.teamFive.chessapp.model.PieceType;
@@ -35,6 +37,12 @@ public class GameActivity extends AppCompatActivity {
 
     private static final long INITIAL_TIME_MS = 10 * 60 * 1000L;
     private static final long AI_DELAY_MS     = 600L;
+
+    // ----------------------------------------------------------------
+    //  Targets read once from Intent and reused across rematches
+    // ----------------------------------------------------------------
+    private int intentWhiteTarget;
+    private int intentBlackTarget;
 
     private GameEngine        gameEngine;
     private ChessTimerManager timerManager;
@@ -62,6 +70,13 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_game);
+
+        // Read targets from Intent (fall back to default if missing)
+        intentWhiteTarget = getIntent().getIntExtra(
+                MainActivity.EXTRA_WHITE_TARGET, RandomBoardGenerator.DEFAULT_TARGET);
+        intentBlackTarget = getIntent().getIntExtra(
+                MainActivity.EXTRA_BLACK_TARGET, RandomBoardGenerator.DEFAULT_TARGET);
+
         bindViews();
         applyWindowInsets();
         initGame();
@@ -98,14 +113,12 @@ public class GameActivity extends AppCompatActivity {
                     WindowInsetsCompat.Type.systemBars() |
                     WindowInsetsCompat.Type.displayCutout()
             );
-            // Push top bar down below status bar / notch
             layoutPlayerBlack.setPadding(
                     layoutPlayerBlack.getPaddingLeft(),
                     layoutPlayerBlack.getPaddingTop() + insets.top,
                     layoutPlayerBlack.getPaddingRight(),
                     layoutPlayerBlack.getPaddingBottom()
             );
-            // Push bottom bar up above navigation bar / gesture handle
             layoutControls.setPadding(
                     layoutControls.getPaddingLeft(),
                     layoutControls.getPaddingTop(),
@@ -116,6 +129,9 @@ public class GameActivity extends AppCompatActivity {
         });
     }
 
+    // ----------------------------------------------------------------
+    //  Game initialisation — uses the Intent targets every time
+    // ----------------------------------------------------------------
     private void initGame() {
         isGameOver    = false;
         isAiThinking  = false;
@@ -125,7 +141,8 @@ public class GameActivity extends AppCompatActivity {
         tvPlayerWhiteName.setText("Bạn (Trắng)");
         tvPlayerBlackName.setText("Máy (Đen)");
 
-        gameEngine = new GameEngine();
+        // Create engine with the targets passed from MainActivity
+        gameEngine = new GameEngine(intentWhiteTarget, intentBlackTarget);
 
         boardAdapter = new ChessBoardAdapter(this, gameEngine.getBoard(), gameEngine.getTurn());
         boardAdapter.setOnMoveSelectedListener(this::onHumanMoveSelected);
@@ -143,6 +160,8 @@ public class GameActivity extends AppCompatActivity {
         tvTimerBlack.setText(t);
 
         btnUndoMove.setEnabled(false);
+        btnHint.setText("💡 Gợi ý");
+        btnHint.setEnabled(true);
         btnHint.setOnClickListener(v -> showHint());
         btnResign.setOnClickListener(v -> handleResign());
 
@@ -196,7 +215,7 @@ public class GameActivity extends AppCompatActivity {
         btnHint.setEnabled(false);
         btnHint.setText("💡 Đang tính...");
 
-        final com.teamFive.chessapp.engine.BoardManager snap = deepCopyBoard(gameEngine.getBoard());
+        final BoardManager snap = deepCopyBoard(gameEngine.getBoard());
         final PlayerColor color = gameEngine.getHumanColor();
 
         new Thread(() -> {
@@ -212,11 +231,14 @@ public class GameActivity extends AppCompatActivity {
         }).start();
     }
 
-    private com.teamFive.chessapp.engine.BoardManager deepCopyBoard(com.teamFive.chessapp.engine.BoardManager orig) {
-        com.teamFive.chessapp.engine.BoardManager copy = new com.teamFive.chessapp.engine.BoardManager();
+    private BoardManager deepCopyBoard(BoardManager orig) {
+        BoardManager copy = new BoardManager();
         copy.board = new Piece[8][8];
         for (int r = 0; r < 8; r++)
-            for (int c = 0; c < 8; c++) { Piece p = orig.board[r][c]; if (p != null) copy.board[r][c] = new Piece(p.type, p.color); }
+            for (int c = 0; c < 8; c++) {
+                Piece p = orig.board[r][c];
+                if (p != null) copy.board[r][c] = new Piece(p.type, p.color);
+            }
         return copy;
     }
 

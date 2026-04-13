@@ -6,9 +6,9 @@ import com.teamFive.chessapp.model.PlayerColor;
 import com.teamFive.chessapp.model.Position;
 
 /**
- * GameEngine với chế độ:
- *  - Bàn cờ ngẫu nhiên kiểu "Really Bad Chess"
- *  - Người (WHITE) đấu với AI (BLACK)
+ * GameEngine with "Really Bad Chess" random boards.
+ * Accepts optional piece-value targets for each side so the caller
+ * (GameActivity / tests) can control board composition.
  */
 public class GameEngine {
 
@@ -16,70 +16,78 @@ public class GameEngine {
     private PlayerColor  turn       = PlayerColor.WHITE;
     private boolean      isGameOver = false;
 
-    // Màu của người chơi thật (AI luôn là màu kia)
     private final PlayerColor humanColor = PlayerColor.WHITE;
     private final PlayerColor aiColor    = PlayerColor.BLACK;
 
+    /** Piece-value targets preserved across reset() calls. */
+    private final int whiteTarget;
+    private final int blackTarget;
+
+    // ----------------------------------------------------------------
+    //  Constructors
+    // ----------------------------------------------------------------
+
+    /** Balanced board using the default target value for both sides. */
     public GameEngine() {
+        this(RandomBoardGenerator.DEFAULT_TARGET, RandomBoardGenerator.DEFAULT_TARGET);
+    }
+
+    /**
+     * Board where White aims for {@code whiteTarget} simplified pts and
+     * Black for {@code blackTarget} simplified pts (range 15–135 each).
+     */
+    public GameEngine(int whiteTarget, int blackTarget) {
+        this.whiteTarget = whiteTarget;
+        this.blackTarget = blackTarget;
         board = new BoardManager();
-        // Dùng bàn ngẫu nhiên thay vì initialize() chuẩn
-        board.board = RandomBoardGenerator.generate();
+        board.board = RandomBoardGenerator.generate(whiteTarget, blackTarget);
     }
 
     // ----------------------------------------------------------------
     //  Getters
     // ----------------------------------------------------------------
-    public BoardManager getBoard()    { return board; }
-    public PlayerColor  getTurn()     { return turn; }
-    public boolean      isGameOver()  { return isGameOver; }
+    public BoardManager getBoard()      { return board; }
+    public PlayerColor  getTurn()       { return turn; }
+    public boolean      isGameOver()    { return isGameOver; }
     public PlayerColor  getHumanColor() { return humanColor; }
     public PlayerColor  getAiColor()    { return aiColor; }
 
     // ----------------------------------------------------------------
-    //  Người chơi thực hiện nước đi
+    //  Human move
     // ----------------------------------------------------------------
     public boolean makeMove(Move move) {
-        if (isGameOver) return false;
-        if (turn != humanColor) return false; // Chặn nếu đang là lượt AI
+        if (isGameOver)            return false;
+        if (turn != humanColor)    return false;
 
         if (!MoveValidator.isValidMove(board, move, turn)) return false;
 
         Piece captured = board.getPiece(move.to);
         board.movePiece(move);
 
-        // Kiểm tra Vua bị chiếu sau nước đi
         if (CheckDetector.isKingInCheck(board, turn)) {
-            // Hoàn tác
             board.movePiece(new Move(move.to, move.from));
             board.board[move.to.row][move.to.col] = captured;
             return false;
         }
 
-        // Xử lý phong cấp Pawn
         handlePromotion(move);
-
-        // Chuyển lượt
         turn = aiColor;
 
-        // Kiểm tra kết thúc
         if (CheckDetector.isCheckmate(board, turn)) {
             isGameOver = true;
         }
-
         return true;
     }
 
-    /**
-     * AI thực hiện nước đi — gọi từ GameActivity sau khi người chơi đi xong.
-     * @return nước AI vừa đi, hoặc null nếu AI không có nước hợp lệ
-     */
+    // ----------------------------------------------------------------
+    //  AI move
+    // ----------------------------------------------------------------
     public Move makeAiMove() {
-        if (isGameOver) return null;
-        if (turn != aiColor) return null;
+        if (isGameOver)        return null;
+        if (turn != aiColor)   return null;
 
         Move aiMove = AIPlayer.getBestMove(board, aiColor);
         if (aiMove == null) {
-            // AI không có nước → stalemate hoặc thua
             isGameOver = true;
             return null;
         }
@@ -87,33 +95,28 @@ public class GameEngine {
         Piece captured = board.getPiece(aiMove.to);
         board.movePiece(aiMove);
 
-        // Kiểm tra an toàn (phòng trường hợp AI tự chiếu)
         if (CheckDetector.isKingInCheck(board, aiColor)) {
             board.movePiece(new Move(aiMove.to, aiMove.from));
             board.board[aiMove.to.row][aiMove.to.col] = captured;
-            // Tìm nước khác (trường hợp hiếm, bỏ qua lượt)
             turn = humanColor;
             return null;
         }
 
         handlePromotion(aiMove);
-
         turn = humanColor;
 
         if (CheckDetector.isCheckmate(board, turn)) {
             isGameOver = true;
         }
-
         return aiMove;
     }
 
     // ----------------------------------------------------------------
-    //  Phong cấp Pawn tự động thành Queen
+    //  Pawn promotion (auto-queen)
     // ----------------------------------------------------------------
     private void handlePromotion(Move move) {
         Piece piece = board.board[move.to.row][move.to.col];
-        if (piece == null) return;
-        if (piece.type != com.teamFive.chessapp.model.PieceType.PAWN) return;
+        if (piece == null || piece.type != com.teamFive.chessapp.model.PieceType.PAWN) return;
 
         boolean whitePromotes = (piece.color == PlayerColor.WHITE && move.to.row == 0);
         boolean blackPromotes = (piece.color == PlayerColor.BLACK && move.to.row == 7);
@@ -125,11 +128,11 @@ public class GameEngine {
     }
 
     // ----------------------------------------------------------------
-    //  Reset ván mới (bàn ngẫu nhiên mới)
+    //  Reset — reuses same targets for a rematch
     // ----------------------------------------------------------------
     public void reset() {
-        board      = new BoardManager();
-        board.board = RandomBoardGenerator.generate();
+        board = new BoardManager();
+        board.board = RandomBoardGenerator.generate(whiteTarget, blackTarget);
         turn       = humanColor;
         isGameOver = false;
     }

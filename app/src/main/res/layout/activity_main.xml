@@ -1,53 +1,265 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1A1A2E">
+    android:background="#1A1A2E"
+    android:fillViewport="true">
 
-    <!-- Logo / Tiêu đề -->
-    <TextView
-        android:id="@+id/tvAppTitle"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="♟ Chess App"
-        android:textColor="#FFD700"
-        android:textSize="36sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tvSubtitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        android:layout_marginBottom="8dp" />
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingTop="64dp"
+        android:paddingBottom="40dp"
+        android:paddingHorizontal="24dp">
 
-    <TextView
-        android:id="@+id/tvSubtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Team Five"
-        android:textColor="#8899AA"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/tvAppTitle"
-        app:layout_constraintBottom_toTopOf="@id/btnPlay"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="48dp" />
+        <!-- ===== LOGO / TITLE ===== -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="♟ Chess App"
+            android:textColor="#FFD700"
+            android:textSize="36sp"
+            android:textStyle="bold" />
 
-    <!-- Nút Chơi ngay -->
-    <Button
-        android:id="@+id/btnPlay"
-        android:layout_width="220dp"
-        android:layout_height="56dp"
-        android:text="▶  Chơi ngay"
-        android:textColor="#1A1A2E"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:background="@drawable/btn_primary"
-        app:layout_constraintTop_toBottomOf="@id/tvSubtitle"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Team Five"
+            android:textColor="#8899AA"
+            android:textSize="16sp"
+            android:layout_marginTop="6dp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <!-- ===== PLAY BUTTON ===== -->
+        <Button
+            android:id="@+id/btnPlay"
+            android:layout_width="220dp"
+            android:layout_height="56dp"
+            android:text="▶  Chơi ngay"
+            android:textColor="#1A1A2E"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:background="@drawable/btn_primary"
+            android:layout_marginTop="52dp" />
+
+        <!-- ===== SETTINGS TOGGLE BUTTON ===== -->
+        <Button
+            android:id="@+id/btnToggleSettings"
+            android:layout_width="200dp"
+            android:layout_height="40dp"
+            android:text="⚙ Board Settings ▼"
+            android:textColor="#8899AA"
+            android:textSize="13sp"
+            android:background="@drawable/btn_secondary"
+            android:layout_marginTop="12dp" />
+
+        <!-- ===== SETTINGS PANEL (collapsed by default) ===== -->
+        <LinearLayout
+            android:id="@+id/layoutSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:background="@drawable/settings_panel_bg"
+            android:padding="18dp"
+            android:layout_marginTop="10dp">
+
+            <!-- Panel Title -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Board Settings"
+                android:textColor="#FFD700"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_marginBottom="14dp" />
+
+            <!-- ─── BASE MATERIAL VALUE ─── -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Base Material Value"
+                    android:textColor="#CCDDEE"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvBaseValue"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="45 pts"
+                    android:textColor="#FFD700"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:minWidth="56dp"
+                    android:gravity="end" />
+            </LinearLayout>
+
+            <!-- Base slider row with min/max labels -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="15"
+                    android:textColor="#667788"
+                    android:textSize="11sp"
+                    android:layout_marginEnd="6dp" />
+
+                <SeekBar
+                    android:id="@+id/seekBase"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="120"
+                    android:progress="30" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="135"
+                    android:textColor="#667788"
+                    android:textSize="11sp"
+                    android:layout_marginStart="6dp" />
+            </LinearLayout>
+
+            <!-- Base description -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Sum of all 15 non-king pieces per side"
+                android:textColor="#556677"
+                android:textSize="11sp"
+                android:gravity="center"
+                android:layout_marginBottom="18dp" />
+
+            <!-- Thin divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#1E3A5F"
+                android:layout_marginBottom="14dp" />
+
+            <!-- ─── MATERIAL ADVANTAGE ─── -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Material Advantage"
+                    android:textColor="#CCDDEE"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvAdvantageDisplay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Balanced"
+                    android:textColor="#4CAF50"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:minWidth="80dp"
+                    android:gravity="end" />
+            </LinearLayout>
+
+            <!-- Advantage slider row with side labels -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⬛"
+                    android:textSize="12sp"
+                    android:layout_marginEnd="4dp" />
+
+                <SeekBar
+                    android:id="@+id/seekAdvantage"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:max="180"
+                    android:progress="90" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⬜"
+                    android:textSize="12sp"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
+
+            <!-- Side labels row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="6dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Black favored"
+                    android:textColor="#556677"
+                    android:textSize="11sp"
+                    android:gravity="start" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="White favored"
+                    android:textColor="#556677"
+                    android:textSize="11sp"
+                    android:gravity="end" />
+            </LinearLayout>
+
+            <!-- Thick divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#1E3A5F"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="14dp" />
+
+            <!-- ─── BOARD SUMMARY ─── -->
+            <TextView
+                android:id="@+id/tvBoardSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="⬜ White: 45 pts   ⚔   ⬛ Black: 45 pts"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
