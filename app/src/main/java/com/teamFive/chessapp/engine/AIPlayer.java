@@ -12,18 +12,20 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * AI đơn giản theo chiến lược Greedy + nhìn trước 1 nước (minimax depth-1).
+ * AI at depth-2 minimax with basic material evaluation.
  *
- * Ưu tiên:
- *  1. Nước ăn quân có giá trị cao nhất
- *  2. Nước thoát chiếu (nếu đang bị chiếu)
- *  3. Nước ngẫu nhiên hợp lệ (thêm yếu tố ngẫu nhiên để game thú vị)
+ * Intentionally weaker than HintEngine (depth-4 + PST + quiescence):
+ *  - No piece-square tables (no positional understanding)
+ *  - No quiescence search (susceptible to horizon effect)
+ *  - Depth 2 only (looks one exchange ahead, misses tactics beyond that)
+ *  - Small random tie-breaking (makes play less predictable)
  */
 public class AIPlayer {
 
+    private static final int   INF = 1_000_000;
     private static final Random RNG = new Random();
 
-    // Điểm giá trị từng loại quân
+    // Basic material values only — no positional bonuses
     private static int pieceValue(PieceType type) {
         switch (type) {
             case QUEEN:  return 900;
@@ -31,132 +33,132 @@ public class AIPlayer {
             case BISHOP: return 330;
             case KNIGHT: return 320;
             case PAWN:   return 100;
-            case KING:   return 20000;
+            case KING:   return 20_000;
             default:     return 0;
         }
     }
 
-    /**
-     * Tính nước đi tốt nhất cho AI (màu BLACK).
-     * @return Move hợp lệ, hoặc null nếu không có nước nào
-     */
-    public static Move getBestMove(BoardManager board, PlayerColor aiColor) {
-        List<Move> allMoves = getAllValidMoves(board, aiColor);
-        if (allMoves.isEmpty()) return null;
-
-        // Tránh nước để Vua bị chiếu
-        List<Move> safeMoves = filterSafeMoves(board, allMoves, aiColor);
-        if (safeMoves.isEmpty()) safeMoves = allMoves; // không có nước an toàn → chấp nhận
-
-        // Phân loại nước
-        List<ScoredMove> scored = new ArrayList<>();
-        for (Move move : safeMoves) {
-            int score = evaluateMove(board, move, aiColor);
-            scored.add(new ScoredMove(move, score));
-        }
-
-        // Sắp xếp giảm dần theo điểm
-        Collections.sort(scored, (a, b) -> b.score - a.score);
-
-        // Lấy nhóm nước tốt nhất (trong vòng 50 điểm so với tốt nhất)
-        // → thêm ngẫu nhiên để AI không quá cứng nhắc
-        int bestScore = scored.get(0).score;
-        List<Move> topMoves = new ArrayList<>();
-        for (ScoredMove sm : scored) {
-            if (bestScore - sm.score <= 50) {
-                topMoves.add(sm.move);
-            } else {
-                break;
+    // Simple material count (positive = good for WHITE)
+    private static int evaluate(BoardManager board) {
+        int score = 0;
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                Piece p = board.board[r][c];
+                if (p == null) continue;
+                int val = pieceValue(p.type);
+                score += (p.color == PlayerColor.WHITE) ? val : -val;
             }
         }
-
-        return topMoves.get(RNG.nextInt(topMoves.size()));
-    }
-
-    // ----------------------------------------------------------------
-    //  Đánh giá điểm 1 nước đi
-    // ----------------------------------------------------------------
-    private static int evaluateMove(BoardManager board, Move move, PlayerColor aiColor) {
-        int score = 0;
-
-        // Ăn quân đối phương → cộng điểm
-        Piece target = board.board[move.to.row][move.to.col];
-        if (target != null && target.color != aiColor) {
-            score += pieceValue(target.type);
-        }
-
-        // Thưởng cho việc đẩy quân vào trung tâm (cột 3-4, hàng 3-4)
-        int centerBonus = (3 - Math.abs(move.to.col - 3)) + (3 - Math.abs(move.to.row - 3));
-        score += centerBonus * 2;
-
-        // Thưởng Pawn tiến về phía trước
-        if (isPawn(board, move.from, aiColor)) {
-            int direction = (aiColor == PlayerColor.BLACK) ? 1 : -1;
-            score += (move.to.row - move.from.row) * direction * 5;
-        }
-
+        // Small random noise to break ties differently each game
+        score += RNG.nextInt(15) - 7;
         return score;
     }
 
-    // ----------------------------------------------------------------
-    //  Lọc nước an toàn (không để Vua bị chiếu sau khi đi)
-    // ----------------------------------------------------------------
-    private static List<Move> filterSafeMoves(BoardManager board,
-                                               List<Move> moves,
-                                               PlayerColor color) {
-        List<Move> safe = new ArrayList<>();
+    /**
+     * Returns the best move for aiColor using depth-2 minimax.
+     */
+    public static Move getBestMove(BoardManager board, PlayerColor aiColor) {
+        List<Move> moves = getAllValidSafeMoves(board, aiColor);
+        if (moves.isEmpty()) return null;
+
+        // Shuffle so equal-scored moves vary game to game
+        Collections.shuffle(moves, RNG);
+
+        boolean maximizing = (aiColor == PlayerColor.WHITE);
+        int alpha = -INF, beta = INF;
+        Move best = null;
+        int bestScore = maximizing ? -INF : INF;
+
         for (Move move : moves) {
-            // Giả lập nước đi
-            Piece captured = board.board[move.to.row][move.to.col];
-            board.board[move.to.row][move.to.col] = board.board[move.from.row][move.from.col];
-            board.board[move.from.row][move.from.col] = null;
+            Piece captured = applyMove(board, move);
+            int score = minimax(board, 1, alpha, beta, !maximizing);
+            undoMove(board, move, captured);
 
-            boolean inCheck = CheckDetector.isKingInCheck(board, color);
-
-            // Hoàn tác
-            board.board[move.from.row][move.from.col] = board.board[move.to.row][move.to.col];
-            board.board[move.to.row][move.to.col] = captured;
-
-            if (!inCheck) safe.add(move);
+            if (maximizing ? score > bestScore : score < bestScore) {
+                bestScore = score;
+                best = move;
+            }
+            if (maximizing) alpha = Math.max(alpha, bestScore);
+            else            beta  = Math.min(beta,  bestScore);
         }
-        return safe;
+        return best;
     }
 
     // ----------------------------------------------------------------
-    //  Lấy tất cả nước đi hợp lệ của một màu
+    //  Minimax — depth 2 total (1 remaining after root)
     // ----------------------------------------------------------------
-    private static List<Move> getAllValidMoves(BoardManager board, PlayerColor color) {
-        List<Move> moves = new ArrayList<>();
+    private static int minimax(BoardManager board, int depth, int alpha, int beta, boolean maximizing) {
+        PlayerColor color = maximizing ? PlayerColor.WHITE : PlayerColor.BLACK;
+
+        if (depth == 0) return evaluate(board);
+
+        List<Move> moves = getAllValidSafeMoves(board, color);
+        if (moves.isEmpty()) {
+            if (CheckDetector.isKingInCheck(board, color)) {
+                return maximizing ? -(INF - depth) : (INF - depth);
+            }
+            return 0; // stalemate
+        }
+
+        if (maximizing) {
+            int best = -INF;
+            for (Move move : moves) {
+                Piece cap = applyMove(board, move);
+                best = Math.max(best, minimax(board, depth - 1, alpha, beta, false));
+                undoMove(board, move, cap);
+                alpha = Math.max(alpha, best);
+                if (beta <= alpha) break;
+            }
+            return best;
+        } else {
+            int best = INF;
+            for (Move move : moves) {
+                Piece cap = applyMove(board, move);
+                best = Math.min(best, minimax(board, depth - 1, alpha, beta, true));
+                undoMove(board, move, cap);
+                beta = Math.min(beta, best);
+                if (beta <= alpha) break;
+            }
+            return best;
+        }
+    }
+
+    // ----------------------------------------------------------------
+    //  Move helpers
+    // ----------------------------------------------------------------
+    private static Piece applyMove(BoardManager board, Move move) {
+        Piece captured = board.board[move.to.row][move.to.col];
+        board.board[move.to.row][move.to.col]     = board.board[move.from.row][move.from.col];
+        board.board[move.from.row][move.from.col] = null;
+        return captured;
+    }
+
+    private static void undoMove(BoardManager board, Move move, Piece captured) {
+        board.board[move.from.row][move.from.col] = board.board[move.to.row][move.to.col];
+        board.board[move.to.row][move.to.col]     = captured;
+    }
+
+    // ----------------------------------------------------------------
+    //  Move generation — only legal moves (no self-check)
+    // ----------------------------------------------------------------
+    private static List<Move> getAllValidSafeMoves(BoardManager board, PlayerColor color) {
+        List<Move> result = new ArrayList<>();
         for (int r = 0; r < 8; r++) {
             for (int c = 0; c < 8; c++) {
-                Piece piece = board.board[r][c];
-                if (piece == null || piece.color != color) continue;
+                Piece p = board.board[r][c];
+                if (p == null || p.color != color) continue;
                 for (int tr = 0; tr < 8; tr++) {
                     for (int tc = 0; tc < 8; tc++) {
                         Move move = new Move(new Position(r, c), new Position(tr, tc));
-                        if (MoveValidator.isValidMove(board, move, color)) {
-                            moves.add(move);
-                        }
+                        if (!MoveValidator.isValidMove(board, move, color)) continue;
+                        Piece cap = applyMove(board, move);
+                        boolean safe = !CheckDetector.isKingInCheck(board, color);
+                        undoMove(board, move, cap);
+                        if (safe) result.add(move);
                     }
                 }
             }
         }
-        // Xáo trộn để AI không đi cùng 1 kiểu mãi
-        Collections.shuffle(moves, RNG);
-        return moves;
-    }
-
-    private static boolean isPawn(BoardManager board, Position pos, PlayerColor color) {
-        Piece p = board.board[pos.row][pos.col];
-        return p != null && p.type == PieceType.PAWN && p.color == color;
-    }
-
-    // ----------------------------------------------------------------
-    //  Helper class
-    // ----------------------------------------------------------------
-    private static class ScoredMove {
-        final Move move;
-        final int  score;
-        ScoredMove(Move move, int score) { this.move = move; this.score = score; }
+        return result;
     }
 }

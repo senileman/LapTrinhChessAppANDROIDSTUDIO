@@ -108,6 +108,11 @@
     </LinearLayout>
 
     <!-- ===== BÀN CỜ ===== -->
+    <!--
+        boardWrapper is a square (1:1) that fills the space between the two
+        player bars. The GridView sits inside with no padding so the adapter's
+        parentWidth/8 math gives perfectly square cells.
+    -->
     <FrameLayout
         android:id="@+id/boardWrapper"
         android:layout_width="0dp"
@@ -118,56 +123,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintDimensionRatio="1:1">
 
-        <LinearLayout
-            android:id="@+id/colLabelsTop"
-            android:layout_width="match_parent"
-            android:layout_height="16dp"
-            android:orientation="horizontal"
-            android:layout_gravity="top"
-            android:paddingStart="16dp"
-            android:paddingEnd="0dp">
-
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="a" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="b" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="c" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="d" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="e" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="f" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="g" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="h" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/rowLabels"
-            android:layout_width="16dp"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:layout_gravity="start"
-            android:paddingTop="16dp"
-            android:paddingBottom="0dp">
-
-            <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:text="8" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:text="7" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:text="6" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:text="5" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:text="4" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:text="3" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:text="2" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-            <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:text="1" android:gravity="center" android:textColor="#8899AA" android:textSize="10sp"/>
-        </LinearLayout>
-
         <GridView
             android:id="@+id/chessBoard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="center"
-            android:paddingStart="16dp"
-            android:paddingTop="16dp"
             android:numColumns="8"
             android:verticalSpacing="0dp"
             android:horizontalSpacing="0dp"
             android:stretchMode="columnWidth"
             android:scrollbars="none" />
+
     </FrameLayout>
 
     <!-- ===== THÔNG TIN NGƯỜI CHƠI TRẮNG ===== -->

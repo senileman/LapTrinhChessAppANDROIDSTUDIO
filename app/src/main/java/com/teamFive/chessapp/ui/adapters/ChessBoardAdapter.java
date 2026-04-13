@@ -26,14 +26,14 @@ public class ChessBoardAdapter extends BaseAdapter {
     // ----------------------------------------------------------------
     //  Colors
     // ----------------------------------------------------------------
-    private static final int COLOR_LIGHT       = 0xFFF0D9B5;
-    private static final int COLOR_DARK        = 0xFFB58863;
-    private static final int COLOR_SELECTED    = 0xFFF6F669;
-    private static final int COLOR_VALID_MOVE  = 0x6000C853;
-    private static final int COLOR_CAPTURE     = 0x60FF5252;
-    private static final int COLOR_CHECK       = 0xAAFF1744;
-    private static final int COLOR_HINT_FROM   = 0xCC7EC8F4; // light blue — piece to move
-    private static final int COLOR_HINT_TO     = 0xCC2196F3; // blue — destination
+    private static final int COLOR_LIGHT      = 0xFFF0D9B5;
+    private static final int COLOR_DARK       = 0xFFB58863;
+    private static final int COLOR_SELECTED   = 0xFFF6F669;
+    private static final int COLOR_VALID_MOVE = 0x6000C853;
+    private static final int COLOR_CAPTURE    = 0x60FF5252;
+    private static final int COLOR_CHECK      = 0xAAFF1744;
+    private static final int COLOR_HINT_FROM  = 0xCC7EC8F4;
+    private static final int COLOR_HINT_TO    = 0xCC2196F3;
 
     // ----------------------------------------------------------------
     //  State
@@ -47,9 +47,11 @@ public class ChessBoardAdapter extends BaseAdapter {
     private final Set<Integer> captureIndices   = new HashSet<>();
     private int checkKingIndex = -1;
 
-    // Hint overlay
     private int hintFromIndex = -1;
     private int hintToIndex   = -1;
+
+    // Cached cell size so every getView call uses the same value
+    private int cellSize = 0;
 
     // ----------------------------------------------------------------
     //  Callback
@@ -89,11 +91,6 @@ public class ChessBoardAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    /**
-     * Highlight the suggested move from the HintEngine.
-     * Clears any existing selection first, then highlights from→to in blue.
-     * Tapping any cell afterwards clears the hint.
-     */
     public void showHint(Position from, Position to) {
         selectedIndex = -1;
         validMoveIndices.clear();
@@ -125,25 +122,29 @@ public class ChessBoardAdapter extends BaseAdapter {
             cell = new CellView(context);
         }
 
-        // Square sizing
-        final int parentWidth = parent.getWidth();
-        if (parentWidth > 0) {
-            final int size = parentWidth / 8;
+        // Compute cell size once from the parent GridView's width.
+        // The GridView has no padding (fixed in layout), so parentWidth / 8
+        // gives perfectly square cells that tile the full board.
+        if (cellSize == 0 && parent.getWidth() > 0) {
+            cellSize = parent.getWidth() / 8;
+        }
+
+        if (cellSize > 0) {
             ViewGroup.LayoutParams lp = cell.getLayoutParams();
             if (lp == null) {
-                lp = new ViewGroup.LayoutParams(size, size);
+                lp = new ViewGroup.LayoutParams(cellSize, cellSize);
             } else {
-                lp.width  = size;
-                lp.height = size;
+                lp.width  = cellSize;
+                lp.height = cellSize;
             }
             cell.setLayoutParams(lp);
-            cell.updateTextSize(size);
+            cell.updateTextSize(cellSize);
         }
 
         final int row = position / 8;
         final int col = position % 8;
 
-        // Background color — priority: check > selected > hint > normal
+        // Background — priority: check > selected > hint > normal
         final boolean isLight = (row + col) % 2 == 0;
         final int bgColor;
         if (position == checkKingIndex) {
@@ -172,7 +173,7 @@ public class ChessBoardAdapter extends BaseAdapter {
             cell.tvPiece.setVisibility(View.INVISIBLE);
         }
 
-        // Valid-move overlay dots
+        // Valid-move overlay
         if (validMoveIndices.contains(position)) {
             cell.viewDot.setBackgroundColor(COLOR_VALID_MOVE);
             cell.viewDot.setVisibility(View.VISIBLE);
@@ -183,7 +184,6 @@ public class ChessBoardAdapter extends BaseAdapter {
             cell.viewDot.setVisibility(View.GONE);
         }
 
-        // Click
         cell.setOnClickListener(v -> handleCellClick(position, row, col));
 
         return cell;
@@ -193,7 +193,6 @@ public class ChessBoardAdapter extends BaseAdapter {
     //  Click handling
     // ----------------------------------------------------------------
     private void handleCellClick(int index, int row, int col) {
-        // Any tap clears hint
         if (hintFromIndex != -1 || hintToIndex != -1) {
             clearHint();
             notifyDataSetChanged();
@@ -262,22 +261,22 @@ public class ChessBoardAdapter extends BaseAdapter {
     private String getPieceUnicode(Piece piece) {
         if (piece.color == PlayerColor.WHITE) {
             switch (piece.type) {
-                case KING:   return "\u2654"; // ♔
-                case QUEEN:  return "\u2655"; // ♕
-                case ROOK:   return "\u2656"; // ♖
-                case BISHOP: return "\u2657"; // ♗
-                case KNIGHT: return "\u2658"; // ♘
-                case PAWN:   return "\u2659"; // ♙
+                case KING:   return "\u2654";
+                case QUEEN:  return "\u2655";
+                case ROOK:   return "\u2656";
+                case BISHOP: return "\u2657";
+                case KNIGHT: return "\u2658";
+                case PAWN:   return "\u2659";
                 default:     return "";
             }
         } else {
             switch (piece.type) {
-                case KING:   return "\u265A"; // ♚
-                case QUEEN:  return "\u265B"; // ♛
-                case ROOK:   return "\u265C"; // ♜
-                case BISHOP: return "\u265D"; // ♝
-                case KNIGHT: return "\u265E"; // ♞
-                case PAWN:   return "\u265F"; // ♟
+                case KING:   return "\u265A";
+                case QUEEN:  return "\u265B";
+                case ROOK:   return "\u265C";
+                case BISHOP: return "\u265D";
+                case KNIGHT: return "\u265E";
+                case PAWN:   return "\u265F";
                 default:     return "";
             }
         }

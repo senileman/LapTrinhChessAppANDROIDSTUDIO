@@ -11,19 +11,15 @@ import java.util.Random;
 
 /**
  * Sinh bàn cờ ngẫu nhiên theo phong cách "Really Bad Chess":
- *  - Mỗi bên có đúng 1 Vua + 15 quân ngẫu nhiên (Queen/Rook/Bishop/Knight/Pawn)
+ *  - Mỗi bên có đúng 1 Vua cố định (e1 / e8) + 15 quân ngẫu nhiên
  *  - Quân được xếp ngẫu nhiên trong 2 hàng đầu của mỗi bên
  *  - Pawn không được đứng ở hàng cuối (hàng 0 hoặc 7)
- *  - King KHÔNG bao giờ nằm trong pool ngẫu nhiên — chỉ có đúng 1 Vua mỗi bên
+ *  - King KHÔNG bao giờ nằm trong pool ngẫu nhiên
  */
 public class RandomBoardGenerator {
 
     private static final Random RNG = new Random();
 
-    /**
-     * Pool ngẫu nhiên — KHÔNG bao gồm KING.
-     * Trọng số xuất hiện: Pawn nhiều hơn các quân mạnh.
-     */
     private static final PieceType[] POOL = {
             PieceType.QUEEN,  PieceType.QUEEN,
             PieceType.ROOK,   PieceType.ROOK,   PieceType.ROOK,
@@ -34,12 +30,14 @@ public class RandomBoardGenerator {
             PieceType.PAWN,   PieceType.PAWN,    PieceType.PAWN,
     };
 
-    /**
-     * Tạo bàn cờ 8x8 với quân ngẫu nhiên.
-     * @return mảng Piece[8][8], null = ô trống
-     */
     public static Piece[][] generate() {
         Piece[][] board = new Piece[8][8];
+
+        // Kings are always fixed:
+        //   Black King on e8  → row 0, col 4
+        //   White King on e1  → row 7, col 4
+        board[0][4] = new Piece(PieceType.KING, PlayerColor.BLACK);
+        board[7][4] = new Piece(PieceType.KING, PlayerColor.WHITE);
 
         placeRandomPieces(board, PlayerColor.BLACK, 0, 1);  // hàng 0-1
         placeRandomPieces(board, PlayerColor.WHITE, 6, 7);  // hàng 6-7
@@ -50,25 +48,23 @@ public class RandomBoardGenerator {
     private static void placeRandomPieces(Piece[][] board,
                                            PlayerColor color,
                                            int topRow, int bottomRow) {
-        // 16 vị trí trong 2 hàng
+        // King's fixed square must be excluded from the random pool
+        int kingRow = (color == PlayerColor.WHITE) ? 7 : 0;
+        int kingCol = 4;
+
         List<int[]> positions = new ArrayList<>();
         for (int c = 0; c < 8; c++) {
-            positions.add(new int[]{topRow,    c});
-            positions.add(new int[]{bottomRow, c});
+            if (!(topRow    == kingRow && c == kingCol)) positions.add(new int[]{topRow,    c});
+            if (!(bottomRow == kingRow && c == kingCol)) positions.add(new int[]{bottomRow, c});
         }
+        // positions now has exactly 15 free squares
         Collections.shuffle(positions, RNG);
 
-        // --- Vua luôn ở vị trí đầu tiên (ngẫu nhiên trong 16 ô) ---
-        int[] kingPos = positions.get(0);
-        board[kingPos[0]][kingPos[1]] = new Piece(PieceType.KING, color);
-
-        // --- 15 quân còn lại: random từ POOL (không chứa KING) ---
         for (int i = 0; i < 15; i++) {
-            int[] pos  = positions.get(i + 1);
-            PieceType type = POOL[RNG.nextInt(POOL.length)]; // guaranteed non-KING
+            int[] pos = positions.get(i);
+            PieceType type = POOL[RNG.nextInt(POOL.length)];
 
-            // Pawn không được ở hàng cuối (hàng 0 hoặc 7 → sẽ phải phong cấp ngay)
-            // Nếu rơi vào hàng cấm, đổi thành Knight
+            // Pawn cannot stand on the last rank (would need immediate promotion)
             if (type == PieceType.PAWN && (pos[0] == 0 || pos[0] == 7)) {
                 type = PieceType.KNIGHT;
             }
