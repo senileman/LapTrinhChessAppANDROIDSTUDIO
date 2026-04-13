@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@drawable/dialog_bg">
+
+    <!-- Icon kết quả -->
+    <TextView
+        android:id="@+id/tvResultEmoji"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🏆"
+        android:textSize="56sp"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Tiêu đề -->
+    <TextView
+        android:id="@+id/tvResultTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ván đấu kết thúc!"
+        android:textColor="#FFD700"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Chi tiết kết quả -->
+    <TextView
+        android:id="@+id/tvResultDetail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Người chơi Trắng thắng\nbằng Chiếu bí!"
+        android:textColor="#CCCCCC"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#33FFFFFF"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Nút chơi lại -->
+    <Button
+        android:id="@+id/btnPlayAgain"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="🔄  Chơi lại"
+        android:textColor="#1A1A2E"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:background="@drawable/btn_primary"
+        android:layout_marginBottom="10dp" />
+
+    <!-- Nút về màn hình chính -->
+    <Button
+        android:id="@+id/btnMainMenu"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="🏠  Màn hình chính"
+        android:textColor="#FFFFFF"
+        android:textSize="15sp"
+        android:background="@drawable/btn_secondary" />
+
+</LinearLayout>
